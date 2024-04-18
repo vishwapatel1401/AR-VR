@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./index.css" />
+
+    <title>Muse Tour AR</title>
+
+    <script
+      type="module"
+      src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"
+    ></script>
+
+    <!-- Loads <model-viewer> for old browsers like IE11: -->
+    <script
+      nomodule
+      src="https://unpkg.com/@google/model-viewer/dist/model-viewer-legacy.js"
+    ></script>
+  </head>
+  <body>
+    <div class="viewer__container" tabindex="-1">
+      <h1>Muse AR</h1>
+      <model-viewer
+        src="./models/sphere.glb"
+        ar
+        ar-scale="fixed"
+        camera-controls
+        touch-action="pan-y"
+        shadow-intensity="5"
+        skybox-height="2m"
+        max-camera-orbit="auto 90deg auto"
+        xr-environment
+        tabindex="-1"
+      >
+      </model-viewer>
+
+      <div>
+        <select id="package_select">
+          <option value="1">Package 1</option>
+          <option value="2">Package 2</option>
+        </select>
+        <select id="scene_select">
+          <option value="./tiles/den_1.jpg">Den</option>
+          <option value="./tiles/kitchen_1.jpg">Kitchen</option>
+          <option value="./tiles/entrance_1.jpg">Entrance</option>
+          <option value="./tiles/bathroom_1.jpg">Bathroom</option>
+          <option value="./tiles/livingroom_1.jpg">Living Room</option>
+          <option value="./tiles/bedroom_1.jpg">Bedroom</option>
+        </select>
+      </div>
+    </div>
+
+    <script>
+      // Default package
+      let packageIndex = 1;
+
+      // Default scene
+      let scene = "./tiles/den_1.jpg";
+
+      // Name of the scene used to fetch the filename of the scene
+      let sceneName = "den";
+
+      // Get the model-viewer element
+      const modelViewerTexture1 = document.querySelector("model-viewer");
+
+      /**
+       * Creates and applies a texture to a specific channel.
+       *
+       * @param {object} material - The material to apply the texture to.
+       * @param {string} channel - The channel to apply the texture to.
+       * @param {string} newTexture - The new texture to be applied.
+       */
+      const createAndApplyTexture = async (material, channel, newTexture) => {
+        const texture = await modelViewerTexture1.createTexture(newTexture);
+
+        material["pbrMetallicRoughness"]["baseColorTexture"].setTexture(
+          texture
+        );
+      };
+
+      /**
+       * Gets the name of the scene from the scene path.
+       *
+       * @param {string} scene - The scene path.
+       * @returns {string} - The name of the scene.
+       */
+      const getSceneName = (scene) => {
+        return scene.split("/")[2].split("_")[0];
+      };
+
+      modelViewerTexture1.addEventListener("load", () => {
+        // Get the material of the model for editing
+        const material = modelViewerTexture1.model.materials[0];
+
+        /*
+          Adds an event listener to the element with the id "package_select".
+          When the input value of this element changes, it updates the scene and the scene select options based on the selected package index.
+          It then calls the createAndApplyTexture function to update the scene with the new texture.
+        */
+        document
+          .querySelector("#package_select")
+          .addEventListener("input", (event) => {
+            packageIndex = event.target.value;
+
+            // Update Current Scene Src
+            scene = `./tiles/${sceneName}_${packageIndex}.jpg`;
+
+            // Update the scene select options
+            document.querySelector("#scene_select").innerHTML = `
+                <option value="./tiles/den_${packageIndex}.jpg">Den</option>
+                <option value="./tiles/kitchen_${packageIndex}.jpg">Kitchen</option>
+                <option value="./tiles/entrance_${packageIndex}.jpg">Entrance</option>
+                <option value="./tiles/bathroom_${packageIndex}.jpg">Bathroom</option>
+                <option value="./tiles/livingroom_${packageIndex}.jpg">Living Room</option>
+                <option value="./tiles/bedroom_${packageIndex}.jpg">Bedroom</option>
+              `;
+
+            // Update the scene
+            createAndApplyTexture(
+              material,
+              "pbrmetallicroughness.baseColorTexture",
+              scene
+            );
+          });
+
+        /*
+          Adds an event listener to the element with the id "scene_select".
+          When the input value of the element changes, it calls the function createAndApplyTexture
+          with the arguments "pbrmetallicroughness.baseColorTexture" and the new value.
+          It also updates the value of the variable "scene" with the new value.
+        */
+        document
+          .querySelector("#scene_select")
+          .addEventListener("input", (event) => {
+            createAndApplyTexture(
+              material,
+              "pbrmetallicroughness.baseColorTexture",
+              event.target.value
+            );
+
+            scene = event.target.value;
+            sceneName = getSceneName(scene);
+          });
+      });
+    </script>
+  </body>
+</html>
