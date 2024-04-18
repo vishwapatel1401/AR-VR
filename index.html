@@ -34,6 +34,8 @@
         tabindex="-1"
       >
       </model-viewer>
+      <!--Annotation element-->
+      <div id="annotation" class="annotation"></div>
 
       <div>
         <select id="package_select">
@@ -133,6 +135,8 @@
         document
           .querySelector("#scene_select")
           .addEventListener("input", (event) => {
+            const selectedSceneName = event.target.options[event.target.selectedIndex].text;
+            document.getElementById("annotation").innerText = `Selected scene: ${selectedSceneName}`;
             createAndApplyTexture(
               material,
               "pbrmetallicroughness.baseColorTexture",
